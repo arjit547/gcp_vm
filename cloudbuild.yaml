@@ -4,17 +4,17 @@ steps:
     entrypoint: 'npm'
     args: ['install']
 
-  # Step 2: Prepare upload folder including dotfiles
+  # Step 2: Prepare upload folder (excluding .git)
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Preparing upload folder with all files including dotfiles..."
+        echo "Preparing upload folder without .git..."
         shopt -s dotglob
         mkdir -p upload
-        cp -r * upload/
-        echo "Upload folder prepared."
+        cp -r $(ls -A | grep -v '^\.git$') upload/
+        echo "Upload folder ready."
 
   # Step 3: Copy upload folder to the VM
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -34,13 +34,13 @@ steps:
         echo "Cleaning up local upload folder..."
         rm -rf upload
 
-  # Step 5: SSH into the VM and restart the app using PM2
+  # Step 5: SSH into the VM and restart app with PM2
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Restarting app with PM2 on the VM..."
+        echo "Restarting app on VM with PM2..."
         gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="
           sudo chown -R ubuntu:ubuntu /home/ubuntu/myapp/upload &&
           cd /home/ubuntu/myapp/upload &&
