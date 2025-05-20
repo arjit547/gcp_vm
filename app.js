@@ -3,7 +3,7 @@ const http = require('http');
 const server = http.createServer((req, res) => {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain');
-  res.end('MI/CSK!\n');
+  res.end('MI/CSK/IPL/GT/RCB!\n');
 });
 
 server.listen(3000, () => {
