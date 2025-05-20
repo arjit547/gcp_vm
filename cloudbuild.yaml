@@ -36,13 +36,15 @@ steps:
           sudo chown -R ubuntu:ubuntu /home/ubuntu/myapp/upload &&
           cp -r /home/ubuntu/myapp/upload/* /home/ubuntu/myapp/ &&
           rm -rf /home/ubuntu/myapp/upload &&
-          cd /home/ubuntu/myapp &&
+          # cd /home/ubuntu/myapp &&
           # pm2 delete myapp || true &&
           # pm2 start app.js --name myapp &&
           # pm2 save"
-          pm2 delete all || true
-          pm2 start app.js --name myapp
-          pm2 save
+          cd /home/ubuntu/myapp
+          pm2 delete myapp || true
+          pm2 start npm --name myapp -- start
+          pm2 save"
+
 
   # Step 5: Clean up local upload folder
   - name: 'gcr.io/cloud-builders/gcloud'
