@@ -4,7 +4,7 @@ steps:
     entrypoint: 'npm'
     args: ['install']
 
-  # Step 2: Copy app files to the VM (supports hidden files)
+  # Step 2: Copy app files to the VM
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -13,18 +13,75 @@ steps:
         shopt -s dotglob
         gcloud compute scp --recurse ./* ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d
 
-  # Step 3: SSH into the VM, kill existing Node process, and restart the app
+  # Step 3: SSH into the VM, fix permissions, kill existing Node process, and restart the app
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="pkill node || true && cd /home/ubuntu/myapp && nohup node app.js > output.log 2>&1 &"
+        gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/myapp &&
+          sudo pkill node || true &&
+          cd /home/ubuntu/myapp &&
+          nohup node app.js > output.log 2>&1 &"
 
 timeout: '600s'
 
 options:
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# steps:
+#   # Step 1: Install dependencies
+#   - name: 'node:16'
+#     entrypoint: 'npm'
+#     args: ['install']
+
+#   # Step 2: Copy app files to the VM (supports hidden files)
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     entrypoint: 'bash'
+#     args:
+#       - '-c'
+#       - |
+#         shopt -s dotglob
+#         gcloud compute scp --recurse ./* ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d
+
+#   # Step 3: SSH into the VM, kill existing Node process, and restart the app
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     entrypoint: 'bash'
+#     args:
+#       - '-c'
+#       - |
+#         gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="pkill node || true && cd /home/ubuntu/myapp && nohup node app.js > output.log 2>&1 &"
+
+# timeout: '600s'
+
+# options:
+#   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
 
 
 
