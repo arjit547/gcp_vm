@@ -4,16 +4,14 @@ steps:
     entrypoint: 'npm'
     args: ['install']
 
-  # Step 2: Copy app files to the VM (fix applied here)
+  # Step 2: Copy app files to the VM (supports hidden files)
   - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
     args:
-      - 'compute'
-      - 'scp'
-      - '--recurse'
-      - './*'
-      - 'ubuntu@vmcicdap:/home/ubuntu/myapp'
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-east1-d'
+      - '-c'
+      - |
+        shopt -s dotglob
+        gcloud compute scp --recurse ./* ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d
 
   # Step 3: SSH into the VM, kill existing Node process, and restart the app
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -27,6 +25,7 @@ timeout: '600s'
 
 options:
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+
 
 
 # steps:
