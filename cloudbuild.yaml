@@ -4,7 +4,15 @@ steps:
     entrypoint: 'npm'
     args: ['install']
 
-  # Step 2: Copy app files to the VM
+  # Step 2: Fix file permissions before copying
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        sudo chown -R $(whoami):$(whoami) . && chmod -R u+rw .
+
+  # Step 3: Copy app files to the VM
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -13,7 +21,7 @@ steps:
         shopt -s dotglob
         gcloud compute scp --recurse ./* ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d
 
-  # Step 3: SSH into the VM, fix permissions, kill existing Node process, and restart the app
+  # Step 4: SSH into the VM, fix permissions, kill Node process, and restart the app
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -29,7 +37,6 @@ timeout: '600s'
 
 options:
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
-
 
 
 
