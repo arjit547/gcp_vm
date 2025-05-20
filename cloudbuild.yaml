@@ -19,6 +19,7 @@ steps:
     args:
       - '-c'
       - |
+        apt-get update && apt-get install -y rsync
         echo "Syncing project files to VM using rsync..."
         rsync -avz -e "gcloud compute ssh --zone=us-east1-d -- " ./ ubuntu@vmcicdap:/home/ubuntu/myapp
 
