@@ -1,0 +1,88 @@
+steps:
+  # Step 1: Install dependencies
+  - name: 'node:16'
+    entrypoint: 'npm'
+    args: ['install']
+
+  # # Step 2: (Optional) Run tests
+  # - name: 'node:16'
+  #   entrypoint: 'npm'
+  #   args: ['test']
+
+  # Step 3: Copy app files to the VM
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'compute'
+      - 'scp'
+      - '--recurse'
+      - '.'
+      - 'ubuntu@vmcicdap:/home/ubuntu/myapp'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-east1-d'
+
+  # Step 4: SSH into the VM, kill the existing Node process, and restart with nohup
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud compute ssh ubuntu@vmcicdap --zone=YOUR_ZONE --command="pkill node || true && cd /home/ubuntu/myapp && nohup node app.js > output.log 2>&1 &"
+
+timeout: '600s'
+
+
+
+
+# steps:
+#   # Install dependencies
+#   - name: 'node:16'  # or your preferred node version
+#     entrypoint: 'npm'
+#     args: ['install']
+
+#   # Run tests (optional)
+#   - name: 'node:16'
+#     entrypoint: 'npm'
+#     args: ['test']
+
+#   # Copy your app files to the VM
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     args:
+#       - 'compute'
+#       - 'scp'
+#       - '--recurse'
+#       - '.'
+#       - 'ubuntu@YOUR_VM_EXTERNAL_IP:/home/ubuntu/myapp'
+
+#   # SSH and restart Node app with pm2
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     entrypoint: 'bash'
+#     args:
+#       - '-c'
+#       - |
+#         gcloud compute ssh ubuntu@YOUR_VM_EXTERNAL_IP --command="cd /home/ubuntu/myapp && pm2 restart app.js || pm2 start app.js"
+
+# timeout: 600s
+
+
+
+
+
+# Reverse Proxy
+ 
+# sudo nano /etc/apache2/sites-available/000-default.conf
+ 
+# <VirtualHost *:80>
+#     ServerAdmin webmaster@localhost
+#     DocumentRoot /var/www/html
+ 
+#     ProxyPreserveHost On
+#     ProxyPass / http://localhost:3000/
+#     ProxyPassReverse / http://localhost:3000/
+ 
+#     ErrorLog ${APACHE_LOG_DIR}/error.log
+#     CustomLog ${APACHE_LOG_DIR}/access.log combined
+# </VirtualHost>
+
+ 
+ 
+# sudo systemctl restart apache2
