@@ -4,29 +4,24 @@ steps:
     entrypoint: 'npm'
     args: ['install']
 
-  # # Step 2: (Optional) Run tests
-  # - name: 'node:16'
-  #   entrypoint: 'npm'
-  #   args: ['test']
-
-  # Step 3: Copy app files to the VM
+  # Step 2: Copy app files to the VM
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'compute'
       - 'scp'
       - '--recurse'
-      - '.'
+      - './'
       - 'ubuntu@vmcicdap:/home/ubuntu/myapp'
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-east1-d'
 
-  # Step 4: SSH into the VM, kill the existing Node process, and restart with nohup
+  # Step 3: SSH into the VM, kill existing Node process, and restart the app
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        gcloud compute ssh ubuntu@vmcicdap --zone=YOUR_ZONE --command="pkill node || true && cd /home/ubuntu/myapp && nohup node app.js > output.log 2>&1 &"
+        gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="pkill node || true && cd /home/ubuntu/myapp && nohup node app.js > output.log 2>&1 &"
 
 timeout: '600s'
 
