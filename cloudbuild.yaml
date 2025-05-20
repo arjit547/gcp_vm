@@ -25,22 +25,24 @@ steps:
         echo "Copying upload folder to VM..."
         gcloud compute scp --recurse upload ubuntu@vmcicdap:/home/ubuntu/myapp/upload --zone=us-east1-d
 
-  # Step 4: SSH into VM, move contents, remove upload folder, and restart app
+  # Step 4: SSH into VM, move contents, remove upload folder, and restart app using ubuntu user
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         echo "Deploying app on VM..."
-        gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="
+        gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command='
           sudo chown -R ubuntu:ubuntu /home/ubuntu/myapp/upload &&
           cp -r /home/ubuntu/myapp/upload/* /home/ubuntu/myapp/ &&
           rm -rf /home/ubuntu/myapp/upload &&
-          cd /home/ubuntu/myapp &&
-          pm2 delete myapp || true &&
-          pm2 start app.js --name myapp &&
-          pm2 save"
-
+          sudo -u ubuntu -H bash -c "
+            cd /home/ubuntu/myapp &&
+            pm2 delete myapp || true &&
+            pm2 start app.js --name myapp &&
+            pm2 save
+          "
+        '
 
   # Step 5: Clean up local upload folder
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -55,6 +57,98 @@ timeout: '600s'
 
 options:
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# steps:
+#   # Step 1: Install dependencies
+#   - name: 'node:16'
+#     entrypoint: 'npm'
+#     args: ['install']
+
+#   # Step 2: Prepare upload folder (excluding .git)
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     entrypoint: 'bash'
+#     args:
+#       - '-c'
+#       - |
+#         echo "Preparing upload folder without .git..."
+#         shopt -s dotglob
+#         mkdir -p upload
+#         cp -r $(ls -A | grep -v '^\.git$') upload/
+#         echo "Upload folder ready."
+
+#   # Step 3: Copy upload folder to the VM
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     entrypoint: 'bash'
+#     args:
+#       - '-c'
+#       - |
+#         echo "Copying upload folder to VM..."
+#         gcloud compute scp --recurse upload ubuntu@vmcicdap:/home/ubuntu/myapp/upload --zone=us-east1-d
+
+#   # Step 4: SSH into VM, move contents, remove upload folder, and restart app
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     entrypoint: 'bash'
+#     args:
+#       - '-c'
+#       - |
+#         echo "Deploying app on VM..."
+#         gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="
+#           sudo chown -R ubuntu:ubuntu /home/ubuntu/myapp/upload &&
+#           cp -r /home/ubuntu/myapp/upload/* /home/ubuntu/myapp/ &&
+#           rm -rf /home/ubuntu/myapp/upload &&
+#           cd /home/ubuntu/myapp &&
+#           pm2 delete myapp || true &&
+#           pm2 start app.js --name myapp &&
+#           pm2 save"
+
+
+#   # Step 5: Clean up local upload folder
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     entrypoint: 'bash'
+#     args:
+#       - '-c'
+#       - |
+#         echo "Cleaning up local upload folder..."
+#         rm -rf upload
+
+# timeout: '600s'
+
+# options:
+#   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
 
 
 
