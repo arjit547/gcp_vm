@@ -13,15 +13,14 @@ steps:
         echo "Fixing local permissions..."
         chmod -R a+rX .
 
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  args:
-    - '-c'
-    - |
-      shopt -s dotglob
-      mkdir ./upload && cp -r * ./upload
-      gcloud compute scp --recurse upload/* ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d
-      rm -rf ./upload
+  # Step 3: Copy files to the VM (including dotfiles)
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Copying project files to VM..."
+        gcloud compute scp --recurse . ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d
 
   # Step 4: SSH into the VM and fix ownership and restart the app
   - name: 'gcr.io/cloud-builders/gcloud'
