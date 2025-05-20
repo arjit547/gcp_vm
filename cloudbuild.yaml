@@ -21,7 +21,7 @@ steps:
       - |
         apt-get update && apt-get install -y rsync
         echo "Syncing project files to VM using rsync..."
-        rsync -avz -e "gcloud compute ssh --zone=us-east1-d -- " ./ ubuntu@vmcicdap:/home/ubuntu/myapp
+        rsync -avz -e "gcloud compute ssh --zone=us-east1-d --strict-host-key-checking=no ubuntu@vmcicdap --" ./ ubuntu@vmcicdap:/home/ubuntu/myapp
 
   # Step 4: Fix ownership and permissions on remote VM, then restart app with PM2
   - name: 'gcr.io/cloud-builders/gcloud'
