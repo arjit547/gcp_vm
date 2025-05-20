@@ -4,40 +4,49 @@ steps:
     entrypoint: 'npm'
     args: ['install']
 
-  # Step 2: Fix permissions locally before copying
+  # Step 2: Prepare upload folder including dotfiles
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Fixing local permissions..."
-        chmod -R a+rX .
+        echo "Preparing upload folder with all files including dotfiles..."
+        shopt -s dotglob
+        mkdir -p upload
+        cp -r * upload/
+        echo "Upload folder prepared."
 
-  # Step 3: Sync files to the VM using rsync (handles permissions better than scp)
+  # Step 3: Copy upload folder to the VM
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        apt-get update && apt-get install -y rsync
-        echo "Syncing project files to VM using rsync..."
-        rsync -avz -e "gcloud compute ssh --zone=us-east1-d --strict-host-key-checking=no ubuntu@vmcicdap --" ./ ubuntu@vmcicdap:/home/ubuntu/myapp
+        echo "Copying upload folder to VM..."
+        gcloud compute scp --recurse upload ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d
 
-  # Step 4: Fix ownership and permissions on remote VM, then restart app with PM2
+  # Step 4: Remove the local upload folder
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Fixing remote permissions and restarting app with PM2..."
+        echo "Cleaning up local upload folder..."
+        rm -rf upload
+
+  # Step 5: SSH into the VM and restart the app using PM2
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Restarting app with PM2 on the VM..."
         gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="
-          sudo chown -R ubuntu:ubuntu /home/ubuntu/myapp &&
-          sudo chmod -R 755 /home/ubuntu/myapp &&
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/myapp/upload &&
+          cd /home/ubuntu/myapp/upload &&
           pm2 delete myapp || true &&
-          cd /home/ubuntu/myapp &&
           pm2 start app.js --name myapp &&
-          pm2 save
-        "
+          pm2 save"
 
 timeout: '600s'
 
