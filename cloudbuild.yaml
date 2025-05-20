@@ -4,13 +4,13 @@ steps:
     entrypoint: 'npm'
     args: ['install']
 
-  # Step 2: Copy app files to the VM
+  # Step 2: Copy app files to the VM (fix applied here)
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'compute'
       - 'scp'
       - '--recurse'
-      - './'
+      - './*'
       - 'ubuntu@vmcicdap:/home/ubuntu/myapp'
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-east1-d'
