@@ -21,7 +21,11 @@ steps:
       - |
         echo "Copying project files to VM..."
         shopt -s dotglob
-        gcloud compute scp --recurse * ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d
+        gcloud compute scp --recurse * ubuntu@vmcicdap:/home/ubuntu/myapp --zone=us-east1-d &&
+        echo "Fixing permissions on remote VM..." &&
+        gcloud compute ssh ubuntu@vmcicdap --zone=us-east1-d --command="
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/myapp &&
+          sudo chmod -R 777 /home/ubuntu/myapp"
 
   # Step 4: SSH into the VM, fix ownership, and restart the app using PM2
   - name: 'gcr.io/cloud-builders/gcloud'
